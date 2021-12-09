@@ -250,44 +250,16 @@ const couldMatch = (brokenDigitSegments, correctDigitSegments, brokenSegmentToPo
   });
 };
 
-const digitSegmentCountToNumber = new Map();
-digitSegmentCountToNumber.set(6, (brokenDigitSegments, brokenSegmentToPossibleCorrectSegments) => {
-  const matches = [
-    couldMatch(brokenDigitSegments, digitSegments.get(0), brokenSegmentToPossibleCorrectSegments) ? 0 : null,
-    couldMatch(brokenDigitSegments, digitSegments.get(6), brokenSegmentToPossibleCorrectSegments) ? 6 : null,
-    couldMatch(brokenDigitSegments, digitSegments.get(9), brokenSegmentToPossibleCorrectSegments) ? 9 : null
-  ].filter((a) => a !== null);
-
-  if (matches.length !== 1) return null;
-  return matches[0];
-});
-
-digitSegmentCountToNumber.set(2, (brokenDigitSegments, brokenSegmentToPossibleCorrectSegments) => {
-  return 1;
-});
-
-digitSegmentCountToNumber.set(4, (brokenDigitSegments, brokenSegmentToPossibleCorrectSegments) => {
-  return 4;
-});
-
-digitSegmentCountToNumber.set(3, (brokenDigitSegments, brokenSegmentToPossibleCorrectSegments) => {
-  return 7;
-});
-
-digitSegmentCountToNumber.set(7, (brokenDigitSegments, brokenSegmentToPossibleCorrectSegments) => {
-  return 8;
-});
-
-digitSegmentCountToNumber.set(5, (brokenDigitSegments, brokenSegmentToPossibleCorrectSegments) => {
-  const matches = [
-    couldMatch(brokenDigitSegments, digitSegments.get(2), brokenSegmentToPossibleCorrectSegments) ? 2 : null,
-    couldMatch(brokenDigitSegments, digitSegments.get(3), brokenSegmentToPossibleCorrectSegments) ? 3 : null,
-    couldMatch(brokenDigitSegments, digitSegments.get(5), brokenSegmentToPossibleCorrectSegments) ? 5 : null
-  ].filter((a) => a !== null);
-  
-  if (matches.length !== 1) return null;
-  return matches[0];
-});
+const findExactMatch = (brokenSegments, brokenSegmentToPossibleCorrectSegments) => {
+  const possibleMatches = [];
+  for (const [number, segments] of digitSegments) {
+    if (couldMatch(brokenSegments, segments, brokenSegmentToPossibleCorrectSegments)) {
+      possibleMatches.push(number);
+      if (possibleMatches.length > 1) break;
+    }
+  }
+  return possibleMatches.length === 1 ? possibleMatches[0] : null;
+}
 
 const results = entries.map(([uniquePattern, outputValue]) => {
   const digitToNumber = new Map();
@@ -298,10 +270,10 @@ const results = entries.map(([uniquePattern, outputValue]) => {
 
   while(digitToNumber.size !== 10) {
     uniquePattern.forEach((brokenSegments) => {
-      const number = digitSegmentCountToNumber.get(brokenSegments.size)(brokenSegments, brokenSegmentToPossibleCorrectSegments);
-      if (number !== null) {
-        digitToNumber.set(brokenSegments, number);
-        const correctSegments = digitSegments.get(number);
+      const exactMatch = findExactMatch(brokenSegments, brokenSegmentToPossibleCorrectSegments);
+      if (exactMatch !== null) {
+        digitToNumber.set(brokenSegments, exactMatch);
+        const correctSegments = digitSegments.get(exactMatch);
         
         allSegments.forEach((segment) => {
           const possibleCorrect = brokenSegmentToPossibleCorrectSegments.get(segment);
